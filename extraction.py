@@ -119,11 +119,19 @@ def _strip_code_fences(text: str) -> str:
 # Gemini client
 # --------------------------------------------------------------------------
 
+import streamlit as st  # add this import at the top of extraction.py
+
 def _get_client() -> genai.Client:
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    api_key = None
+    try:
+        api_key = st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        pass  # no secrets.toml locally — fine, fall through to .env/os.environ
+    api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "No Gemini API key found. Set GEMINI_API_KEY in your .env file."
+            "No Gemini API key found. Set GEMINI_API_KEY in Streamlit Cloud's "
+            "app secrets (or a local .env for local runs)."
         )
     return genai.Client(api_key=api_key)
 
